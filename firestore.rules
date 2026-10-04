@@ -1,0 +1,134 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function ownerEmails() { return ['broogame10@gmail.com']; }
+
+    function signedIn() { return request.auth != null; }
+
+    function isOwner() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in ownerEmails();
+    }
+
+    function codeDoc(c) { return /databases/$(database)/documents/codes/$(c); }
+    function customerDoc(u) { return /databases/$(database)/documents/customers/$(u); }
+
+    function profileEdit() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'photo'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 80;
+    }
+
+    function earnStar(uid) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let c = after.lastCode;
+      return after.diff(before).affectedKeys().hasOnly(['stars', 'lastStarAt', 'lastCode'])
+        && c is string
+        && c.matches('^[0-9]{5}$')
+        && before.stars < 6
+        && after.stars == before.stars + 1
+        && after.lastStarAt == request.time
+        && (before.lastStarAt == null || request.time > before.lastStarAt + duration.value(50, 'm'))
+        && exists(codeDoc(c))
+        && get(codeDoc(c)).data.used == false
+        && request.time < get(codeDoc(c)).data.createdAt + duration.value(30, 's')
+        && getAfter(codeDoc(c)).data.used == true
+        && getAfter(codeDoc(c)).data.usedBy == uid;
+    }
+
+    function giveReward() {
+      let b = resource.data;
+      let a = request.resource.data;
+      return a.diff(b).affectedKeys().hasOnly(['stars', 'rewards', 'lastRedeemAt'])
+        && b.stars >= 6
+        && a.stars == 0
+        && a.rewards == b.rewards + 1
+        && a.lastRedeemAt == request.time;
+    }
+
+    match /customers/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isOwner());
+
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'email', 'photo', 'stars', 'rewards', 'createdAt', 'lastStarAt', 'lastCode'])
+        && request.resource.data.stars == 0
+        && request.resource.data.rewards == 0
+        && request.resource.data.lastStarAt == null
+        && request.resource.data.lastCode == null
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if signedIn() && request.auth.uid == uid && (profileEdit() || earnStar(uid));
+      allow update: if isOwner() && giveReward();
+      allow delete: if isOwner();
+    }
+
+    match /codes/{code} {
+      allow read, create, delete: if isOwner();
+      allow update: if isOwner() || (
+        signedIn()
+        && resource.data.used == false
+        && request.time < resource.data.createdAt + duration.value(30, 's')
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['used', 'usedBy', 'usedAt'])
+        && request.resource.data.used == true
+        && request.resource.data.usedBy == request.auth.uid
+        && request.resource.data.usedAt == request.time
+        && getAfter(customerDoc(request.auth.uid)).data.lastCode == code
+        && getAfter(customerDoc(request.auth.uid)).data.lastStarAt == request.time
+      );
+    }
+
+    // ===== Booking site (settings, slots, bookings) =====
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isOwner();
+    }
+
+    match /slots/{sid} {
+      allow read: if true;
+      allow create: if isOwner() || (
+        signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'bookingId', 'kind', 'start', 'stationId'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.kind == 'booking'
+        && request.resource.data.bookingId is string
+        && request.resource.data.start > request.time
+        && request.resource.data.start < request.time + duration.value(15, 'd')
+        && sid.matches('^' + request.resource.data.stationId + '__[0-9]{10}$')
+        && getAfter(/databases/$(database)/documents/bookings/$(request.resource.data.bookingId)).data.uid == request.auth.uid
+      );
+      allow delete: if isOwner() || (signedIn() && resource.data.uid == request.auth.uid);
+    }
+
+    match /bookings/{bid} {
+      allow read: if isOwner() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'phone', 'email', 'sectionId', 'stationId', 'stationName', 'date', 'startHour', 'hours', 'slotIds', 'price', 'status', 'createdAt', 'start'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.hours is int
+        && request.resource.data.hours >= 1 && request.resource.data.hours <= 8
+        && request.resource.data.slotIds.size() == request.resource.data.hours
+        && request.resource.data.name is string && request.resource.data.name.size() <= 80
+        && request.resource.data.phone is string && request.resource.data.phone.size() <= 30
+        && request.resource.data.start > request.time
+        && request.resource.data.createdAt == request.time;
+      allow update: if isOwner() || (
+        signedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt'])
+        && request.resource.data.status == 'cancelled'
+      );
+      allow delete: if isOwner();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
