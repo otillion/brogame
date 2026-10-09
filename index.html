@@ -91,9 +91,7 @@ h1,h2,h3{margin:0;text-wrap:balance} p{margin:0}
 /* sections */
 section.block{padding-block:28px}
 .block h2{font-family:var(--f-display);font-weight:400;font-size:clamp(24px,3.4vw,32px)}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-@media (max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:460px){.cards{grid-template-columns:1fr}}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
 .card{background:var(--night-2);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
 .card .ic{width:44px;height:44px;border-radius:12px;background:var(--felt);display:grid;place-items:center;color:var(--chalk)}
 .card .ic svg{width:26px;height:26px}
@@ -247,12 +245,14 @@ const DEMO = !CONFIG.firebase.apiKey;
 function mkStations(prefix,label,n){ return Array.from({length:n},(_,i)=>({id:`${prefix}-${i+1}`,name:`${label} ${i+1}`,open:true})); }
 const DEFAULT_SETTINGS = {
   sections:[
-    {id:"ps5",price:300,stations:mkStations("ps5","PS5",10)},
-    {id:"racing",price:300,stations:mkStations("sim","Sim",5)},
-    {id:"billiards",price:300,stations:mkStations("bil","Masa",4)},
-    {id:"pingpong",price:300,stations:mkStations("pp","Masa",1)}
+    {id:"ps5",price:180,stations:mkStations("ps5","PS5",12)},
+    {id:"racing",price:250,stations:mkStations("sim","Sim",6)},
+    {id:"billiards",price:300,stations:mkStations("bil","Masa",5)},
+    {id:"pingpong",price:200,stations:mkStations("pp","Masa",1)},
+    {id:"vip",price:400,stations:mkStations("vip","VIP Oda",2)}
   ],
-  hours:Object.fromEntries([0,1,2,3,4,5,6].map(d=>[d,{open:12,close:26,closed:false}])),
+  hours:Object.fromEntries([0,1,2,3,4,5,6].map(d=>[d,{open:11,close:d===5?27:26,closed:false}])),
+  ver:2,
   maxHours:4, bookDays:7, maxActive:3
 };
 
@@ -262,9 +262,9 @@ const I18N={
   tag:"Oyun Salonu · Mezitli", navSections:"Bölümler", navBook:"Rezervasyon", navInfo:"İletişim", my:"Rezervasyonlarım", signin:"Giriş yap", out:"Çıkış",
   heroA:"Oyna.", heroB:"Yarış.", heroC:"Masaya geç.", lead:"PlayStation 5, direksiyonlu racing simülatörler, bilardo ve masa tenisi tek çatı altında. Yerini online ayırt, gelince direkt oyna.",
   bookNow:"Rezervasyon yap", kart:"Game Kart: 10 saat oyna, 1 saat bizden", openNow:"Şu an açık · {t}'e kadar", closedNow:"Şu an kapalı", opensAt:"Bugün {t}'de açılıyor",
-  secName:{ps5:"PlayStation 5",racing:"Racing Simülatör",billiards:"Bilardo",pingpong:"Masa Tenisi"},
-  secShort:{ps5:"PS5",racing:"Racing",billiards:"Bilardo",pingpong:"Masa Tenisi"},
-  secDesc:{ps5:"Büyük ekran, iki kol, en yeni oyunlar.",racing:"Kokpit koltuk, direksiyon ve pedal seti.",billiards:"Profesyonel bilardo masaları.",pingpong:"Turnuva tipi masa, raketler bizden."},
+  secName:{ps5:"PlayStation 5",racing:"Racing Simülatör",billiards:"Bilardo",pingpong:"Masa Tenisi",vip:"VIP Oda"},
+  secShort:{ps5:"PS5",racing:"Racing",billiards:"Bilardo",pingpong:"Masa Tenisi",vip:"VIP Oda"},
+  secDesc:{ps5:"Büyük ekran, iki kol, en yeni oyunlar.",racing:"Kokpit koltuk, direksiyon ve pedal seti.",billiards:"Profesyonel bilardo masaları.",pingpong:"Turnuva tipi masa, raketler bizden.",vip:"Özel oda, rahat koltuklar, grubunla baş başa."},
   units:"ünite", perHour:"/ saat", sectionsTitle:"Neler var?",
   bookTitle:"Yerini ayırt", s1:"Ne oynamak istiyorsun?", s2:"Hangi gün?", s3:"Kaç saat?", s4:"Başlangıç saati", s5:"Hangi ünite?", s6:"Bilgilerin",
   hoursN:"{n} saat", freeN:"{n} boş", full:"Dolu", today:"Bugün", tomorrow:"Yarın", closedDay:"Kapalı",
@@ -292,9 +292,9 @@ const I18N={
   tag:"Game lounge · Mezitli", navSections:"Stations", navBook:"Booking", navInfo:"Contact", my:"My bookings", signin:"Sign in", out:"Sign out",
   heroA:"Play.", heroB:"Race.", heroC:"Take the table.", lead:"PlayStation 5, wheel-and-pedal racing simulators, billiards and table tennis under one roof. Book your spot online and start playing when you arrive.",
   bookNow:"Book now", kart:"Game Kart: play 10 hours, get 1 free", openNow:"Open now · until {t}", closedNow:"Closed now", opensAt:"Opens today at {t}",
-  secName:{ps5:"PlayStation 5",racing:"Racing Simulator",billiards:"Billiards",pingpong:"Table Tennis"},
-  secShort:{ps5:"PS5",racing:"Racing",billiards:"Billiards",pingpong:"Table Tennis"},
-  secDesc:{ps5:"Big screen, two controllers, the latest games.",racing:"Cockpit seat with wheel and pedals.",billiards:"Professional billiard tables.",pingpong:"Tournament table, paddles included."},
+  secName:{ps5:"PlayStation 5",racing:"Racing Simulator",billiards:"Billiards",pingpong:"Table Tennis",vip:"VIP Room"},
+  secShort:{ps5:"PS5",racing:"Racing",billiards:"Billiards",pingpong:"Table Tennis",vip:"VIP Room"},
+  secDesc:{ps5:"Big screen, two controllers, the latest games.",racing:"Cockpit seat with wheel and pedals.",billiards:"Professional billiard tables.",pingpong:"Tournament table, paddles included.",vip:"Private room, comfy seating, just you and your crew."},
   units:"units", perHour:"/ hour", sectionsTitle:"What's inside",
   bookTitle:"Book your spot", s1:"What do you want to play?", s2:"Which day?", s3:"How many hours?", s4:"Start time", s5:"Which unit?", s6:"Your details",
   hoursN:"{n} h", freeN:"{n} free", full:"Full", today:"Today", tomorrow:"Tomorrow", closedDay:"Closed",
@@ -355,7 +355,7 @@ function openStatus(set){
 /* ---------------- backends ---------------- */
 function bad(c){ const e=new Error(c); e.code=c; return e; }
 function makeDemo(){
-  const KEY="brogame_book_demo_v1"; let mem=null; const subs=new Set();
+  const KEY="brogame_book_demo_v2"; let mem=null; const subs=new Set();
   const read=()=>{ try{ const s=localStorage.getItem(KEY); if(s) return JSON.parse(s);}catch(e){} return mem; };
   const write=d=>{ mem=d; try{ localStorage.setItem(KEY,JSON.stringify(d)); }catch(e){} subs.forEach(f=>f()); };
   const on=f=>{ subs.add(f); f(); return ()=>subs.delete(f); };
@@ -363,7 +363,7 @@ function makeDemo(){
     const d={session:"u-demo",users:{"u-demo":{name:"Demo Owner",email:CONFIG.ownerEmails[0]}},settings:null,slots:{},bookings:{}};
     const k=todayKey(); const names=["Ahmet Y. (örnek)","Zeynep K. (örnek)","Omar H. (örnek)","Elif D. (örnek)","Mert A. (örnek)"];
     const plan=[["ps5-1",k,19,2],["ps5-2",k,20,3],["ps5-5",k,22,1],["sim-1",k,18,1],["sim-2",k,21,2],["bil-1",k,20,2],["pp-1",k,17,1],["ps5-3",addDays(k,1),20,2]];
-    plan.forEach(([st,date,h,n],i)=>{ const id="b"+i; const sec=st.startsWith("ps5")?"ps5":st.startsWith("sim")?"racing":st.startsWith("bil")?"billiards":"pingpong";
+    plan.forEach(([st,date,h,n],i)=>{ const id="b"+i; const sec=st.startsWith("ps5")?"ps5":st.startsWith("sim")?"racing":st.startsWith("bil")?"billiards":st.startsWith("vip")?"vip":"pingpong";
       const ids=[]; for(let j=0;j<n;j++){ const ms=startMs(date,h+j); const sid=slotId(st,ms); ids.push(sid); d.slots[sid]={uid:"u-x"+i,bookingId:id,kind:"booking",start:ms,stationId:st}; }
       d.bookings[id]={uid:"u-x"+i,name:names[i%5],phone:"0532 000 00 0"+i,email:"ornek"+i+"@gmail.com",sectionId:sec,stationId:st,date,startHour:h,hours:n,slotIds:ids,price:300*n,status:"active",createdAt:Date.now(),start:startMs(date,h)}; });
     [["ps5-4",k,19],["ps5-4",k,20],["bil-2",k,19]].forEach(([st,date,h])=>{ const ms=startMs(date,h); d.slots[slotId(st,ms)]={uid:"owner",bookingId:null,kind:"walkin",start:ms,stationId:st}; });
@@ -402,7 +402,7 @@ async function makeFirebase(){
     async signIn(){ try{ await Au.signInWithPopup(auth,provider); }catch(e){ if(["auth/popup-blocked","auth/operation-not-supported-in-this-environment","auth/cancelled-popup-request"].includes(e.code)) return Au.signInWithRedirect(auth,provider); if(e.code!=="auth/popup-closed-by-user") throw e; } },
     signOut(){ return Au.signOut(auth); },
     watchSettings(cb){ return F.onSnapshot(F.doc(db,"settings","main"),s=>cb(s.exists()?s.data():null),()=>cb(null)); },
-    saveSettings(s){ return F.setDoc(F.doc(db,"settings","main"),s); },
+    saveSettings(s){ return F.setDoc(F.doc(db,"settings","main"),{...s,ver:DEFAULT_SETTINGS.ver}); },
     watchSlots(from,to,cb){ return F.onSnapshot(F.query(F.collection(db,"slots"),F.where("start",">=",TS.fromMillis(from)),F.where("start","<",TS.fromMillis(to))),
       s=>cb(s.docs.map(d=>({id:d.id,...d.data(),start:ms(d.data().start)}))),()=>cb([])); },
     async createBooking(uid,data){
@@ -426,7 +426,8 @@ const IC={
  ps5:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 10h14a6 6 0 0 1 5.8 4.5l1.3 5.3a3.5 3.5 0 0 1-6 3.1L21 20h-10l-3.1 2.9a3.5 3.5 0 0 1-6-3.1l1.3-5.3A6 6 0 0 1 9 10z"/><path d="M10 13v4M8 15h4"/><circle cx="21" cy="14" r="1" fill="currentColor"/><circle cx="24" cy="16.5" r="1" fill="currentColor"/></svg>',
  racing:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="3"/><path d="M4.5 13.5h8.6M18.9 13.5h8.6M16 19v9"/></svg>',
  billiards:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="5" fill="currentColor" stroke="none" opacity=".25"/><text x="16" y="19.5" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" stroke="none" font-family="sans-serif">8</text></svg>',
- pingpong:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="13" cy="13" r="8.5"/><path d="M19 19l7 7"/><circle cx="25" cy="8" r="2.4" fill="currentColor" stroke="none"/></svg>'
+ pingpong:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="13" cy="13" r="8.5"/><path d="M19 19l7 7"/><circle cx="25" cy="8" r="2.4" fill="currentColor" stroke="none"/></svg>',
+ vip:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 29V4h18v25"/><path d="M4 29h24"/><circle cx="20.5" cy="17" r="1.4" fill="currentColor" stroke="none"/><path d="M11 9h10"/></svg>'
 };
 const GOOGLE_SVG='<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
 
@@ -782,7 +783,7 @@ let backend;
 (async function boot(){
   try{ backend=DEMO?makeDemo():await makeFirebase(); }
   catch(e){ $("#app").innerHTML=`<div class="wrap"><div class="msg err" style="margin-top:40px">${t("err")}</div></div>`; return; }
-  backend.watchSettings(s=>{ S.settings=s&&s.sections?s:null; if(!(S.view==="admin"&&S.adm.tab==="set")) render(); });
+  backend.watchSettings(s=>{ S.settings=s&&s.sections&&(s.ver||0)>=DEFAULT_SETTINGS.ver?s:null; if(!(S.view==="admin"&&S.adm.tab==="set")) render(); });
   backend.onAuth(u=>{ S.user=u; S.authReady=true; if(u&&!S.b.name) S.b.name=u.name||""; route(); });
   route();
 })();
