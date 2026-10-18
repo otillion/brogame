@@ -207,6 +207,12 @@ table.grid tr.sec th{background:var(--felt);text-align:start;padding:6px 10px;fo
 .sheet{position:fixed;inset:0;background:rgba(5,4,14,.7);display:grid;place-items:center;padding:16px;z-index:30}
 .sheet .panel{width:min(420px,100%)}
 .toast{position:fixed;inset-inline:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));margin-inline:auto;max-width:420px;z-index:40}
+#bellbox{position:fixed;top:calc(64px + env(safe-area-inset-top,0px));inset-inline:12px;margin-inline:auto;max-width:460px;z-index:50;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.bellcard{pointer-events:auto;display:flex;gap:12px;align-items:flex-start;background:var(--night-3);border:2px solid var(--gold);border-radius:14px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.5);animation:bellin .5s}
+.bellcard .bi{font-size:26px;display:inline-block;transform-origin:50% 0;animation:bellshake 1s 3}
+.bellcard b{color:var(--gold)} .bellcard small{color:var(--muted)} .bellcard .link{margin-inline-start:auto;font-size:22px;text-decoration:none}
+@keyframes bellin{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+@keyframes bellshake{0%,100%{transform:rotate(0)}20%{transform:rotate(18deg)}40%{transform:rotate(-16deg)}60%{transform:rotate(12deg)}80%{transform:rotate(-8deg)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -215,6 +221,7 @@ table.grid tr.sec th{background:var(--felt);text-align:start;padding:6px 10px;fo
 
 <div id="demo" hidden></div>
 <div id="app"></div>
+<div id="bellbox"></div>
 <div id="layer"></div>
 
 <script>
@@ -261,7 +268,7 @@ const I18N={
  tr:{
   tag:"Oyun Salonu · Mezitli", navSections:"Bölümler", navBook:"Rezervasyon", navInfo:"İletişim", my:"Rezervasyonlarım", signin:"Giriş yap", out:"Çıkış",
   heroA:"Oyna.", heroB:"Yarış.", heroC:"Masaya geç.", lead:"PlayStation 5, direksiyonlu racing simülatörler, bilardo ve masa tenisi tek çatı altında. Yerini online ayırt, gelince direkt oyna.",
-  bookNow:"Rezervasyon yap", kart:"Game Kart: 10 saat oyna, 1 saat bizden", openNow:"Şu an açık · {t}'e kadar", closedNow:"Şu an kapalı", opensAt:"Bugün {t}'de açılıyor",
+  bookNow:"Rezervasyon yap", kart:"Game Kart: 10 mühür topla, 1 saat bizden", openNow:"Şu an açık · {t}'e kadar", closedNow:"Şu an kapalı", opensAt:"Bugün {t}'de açılıyor",
   secName:{ps5:"PlayStation 5",racing:"Racing Simülatör",billiards:"Bilardo",pingpong:"Masa Tenisi",vip:"VIP Oda"},
   secShort:{ps5:"PS5",racing:"Racing",billiards:"Bilardo",pingpong:"Masa Tenisi",vip:"VIP Oda"},
   secDesc:{ps5:"Büyük ekran, iki kol, en yeni oyunlar.",racing:"Kokpit koltuk, direksiyon ve pedal seti.",billiards:"Profesyonel bilardo masaları.",pingpong:"Turnuva tipi masa, raketler bizden.",vip:"Özel oda, rahat koltuklar, grubunla baş başa."},
@@ -286,12 +293,12 @@ const I18N={
   addUnit:"Ünite ekle", remove:"Sil", openChk:"Açık", save:"Kaydet", saved:"Ayarlar kaydedildi.", nextDay:"(ertesi gün)", rules:"Kurallar", maxHours:"Tek seferde en fazla saat", bookDays:"Kaç gün ilerisi", maxActive:"Kişi başı aktif rezervasyon",
   err:"Bir şey ters gitti. Sayfayı yenileyip tekrar dene.", loading:"Yükleniyor…",
   demo:"Demo modu: veriler sadece bu cihazda. Gerçek sitede Google girişi ve ortak veritabanı çalışır.", dSite:"Site", dMy:"Rezervasyonlarım", dAdmin:"Yönetim",
-  demoSign:"Demo girişi", demoName:"Adın", demoGo:"Giriş yap"
+  demoSign:"Demo girişi", demoName:"Adın", demoGo:"Giriş yap", bellNew:"Yeni rezervasyon!", bellOn:"🔔 Zil açık", bellOff:"🔕 Zil kapalı"
  },
  en:{
   tag:"Game lounge · Mezitli", navSections:"Stations", navBook:"Booking", navInfo:"Contact", my:"My bookings", signin:"Sign in", out:"Sign out",
   heroA:"Play.", heroB:"Race.", heroC:"Take the table.", lead:"PlayStation 5, wheel-and-pedal racing simulators, billiards and table tennis under one roof. Book your spot online and start playing when you arrive.",
-  bookNow:"Book now", kart:"Game Kart: play 10 hours, get 1 free", openNow:"Open now · until {t}", closedNow:"Closed now", opensAt:"Opens today at {t}",
+  bookNow:"Book now", kart:"Game Kart: collect 10 stamps, get 1 hour free", openNow:"Open now · until {t}", closedNow:"Closed now", opensAt:"Opens today at {t}",
   secName:{ps5:"PlayStation 5",racing:"Racing Simulator",billiards:"Billiards",pingpong:"Table Tennis",vip:"VIP Room"},
   secShort:{ps5:"PS5",racing:"Racing",billiards:"Billiards",pingpong:"Table Tennis",vip:"VIP Room"},
   secDesc:{ps5:"Big screen, two controllers, the latest games.",racing:"Cockpit seat with wheel and pedals.",billiards:"Professional billiard tables.",pingpong:"Tournament table, paddles included.",vip:"Private room, comfy seating, just you and your crew."},
@@ -316,7 +323,7 @@ const I18N={
   addUnit:"Add unit", remove:"Remove", openChk:"Open", save:"Save", saved:"Settings saved.", nextDay:"(next day)", rules:"Rules", maxHours:"Max hours per booking", bookDays:"Days ahead", maxActive:"Active bookings per person",
   err:"Something went wrong. Refresh and try again.", loading:"Loading…",
   demo:"Demo mode: data stays on this device. The real site uses Google sign-in and a shared database.", dSite:"Site", dMy:"My bookings", dAdmin:"Owner panel",
-  demoSign:"Demo sign-in", demoName:"Your name", demoGo:"Sign in"
+  demoSign:"Demo sign-in", demoName:"Your name", demoGo:"Sign in", bellNew:"New booking!", bellOn:"🔔 Bell on", bellOff:"🔕 Bell off"
  }
 };
 function pickLang(){ try{ const s=localStorage.getItem("bro_lang"); if(s&&I18N[s]) return s; }catch(e){} return "tr"; }
@@ -383,6 +390,7 @@ function makeDemo(){
       d.bookings[id]={...data,uid,status:"active",createdAt:Date.now()}; write(d); return id; },
     async cancelBooking(b){ const d=read(); const x=d.bookings[b.id]; if(!x) return; x.status="cancelled"; x.cancelledAt=Date.now(); (x.slotIds||[]).forEach(s=>{ if(d.slots[s]&&d.slots[s].bookingId===b.id) delete d.slots[s]; }); write(d); },
     watchMyBookings(uid,cb){ return on(()=>{ const d=read(); cb(Object.entries(d.bookings).filter(([,b])=>b.uid===uid).map(([id,b])=>({id,...b}))); }); },
+    watchNewBookings(since,cb){ return on(()=>{ const d=read(); cb(Object.entries(d.bookings).filter(([,b])=>(b.createdAt||0)>=since).map(([id,b])=>({id,...b}))); }); },
     watchBookingsByDate(date,cb){ return on(()=>{ const d=read(); cb(Object.entries(d.bookings).filter(([,b])=>b.date===date).map(([id,b])=>({id,...b}))); }); },
     async addWalkin(stationId,ms){ const d=read(); const id=slotId(stationId,ms); if(d.slots[id]) throw bad("taken"); d.slots[id]={uid:"owner",bookingId:null,kind:"walkin",start:ms,stationId}; write(d); },
     async removeSlot(id){ const d=read(); delete d.slots[id]; write(d); }
@@ -415,6 +423,7 @@ async function makeFirebase(){
       (bk.slotIds||[]).forEach(sid=>{ if(live.size===0||live.has(sid)) b.delete(F.doc(db,"slots",sid)); });
       await b.commit(); },
     watchMyBookings(uid,cb){ return F.onSnapshot(F.query(F.collection(db,"bookings"),F.where("uid","==",uid)),s=>cb(s.docs.map(mapB)),()=>cb([])); },
+    watchNewBookings(since,cb){ return F.onSnapshot(F.query(F.collection(db,"bookings"),F.where("createdAt",">",TS.fromMillis(since))),s=>cb(s.docs.filter(d=>!d.metadata.hasPendingWrites&&d.data().createdAt).map(mapB)),()=>{}); },
     watchBookingsByDate(date,cb){ return F.onSnapshot(F.query(F.collection(db,"bookings"),F.where("date","==",date)),s=>cb(s.docs.map(mapB)),()=>cb([])); },
     addWalkin(stationId,msv){ return F.setDoc(F.doc(db,"slots",slotId(stationId,msv)),{uid:auth.currentUser.uid,bookingId:null,kind:"walkin",start:TS.fromMillis(msv),stationId}); },
     removeSlot(id){ return F.deleteDoc(F.doc(db,"slots",id)); }
@@ -608,7 +617,7 @@ function viewAdmin(){
   if(A.tab==="set") body=settingsHTML();
   else body=`${datePick}${statsHTML()}${A.msg?`<div class="msg ${A.msg.k}" role="status">${esc(A.msg.t)}</div>`:""}${A.tab==="cal"?calHTML():listHTML()}`;
   return `${header()}<main class="wrap stack" style="padding-block:24px">
-    <div class="row"><h1 style="font-family:var(--f-display);font-weight:400;font-size:28px">${t("admin")}</h1><span class="spacer"></span><button class="link" data-act="signout">${t("out")}</button></div>
+    <div class="row"><h1 style="font-family:var(--f-display);font-weight:400;font-size:28px">${t("admin")}</h1><span class="spacer"></span><button class="btn ghost small" data-act="bell-toggle">${BELL.on?t("bellOn"):t("bellOff")}</button><button class="link" data-act="signout">${t("out")}</button></div>
     ${tabs}${body}</main>`;
 }
 function dayData(){
@@ -705,8 +714,16 @@ function route(){
   else if(changed) window.scrollTo(0,0);
 }
 
+/* bell: sound + banner when a new booking arrives (owner panel) */
+const BELL={on:(()=>{try{return localStorage.getItem("bro_bell")!=="0";}catch(e){return true;}})(),ctx:null,seen:null,alerts:[]};
+function bellCtx(){ try{ if(!BELL.ctx) BELL.ctx=new (window.AudioContext||window.webkitAudioContext)(); if(BELL.ctx.state==="suspended") BELL.ctx.resume(); return BELL.ctx; }catch(e){ return null; } }
+function ring(){ const c=bellCtx(); if(!c) return; for(let k=0;k<3;k++){ const t0=c.currentTime+0.05+k*1.0; [[880,.5],[2430,.22],[4750,.12],[7830,.06]].forEach(([f,v])=>{ const o=c.createOscillator(), g=c.createGain(); o.type="sine"; o.frequency.value=f; g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(v,t0+0.01); g.gain.exponentialRampToValueAtTime(0.0001,t0+1.2); o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+1.3); }); } try{ navigator.vibrate&&navigator.vibrate([200,100,200]); }catch(e){} }
+function bellPaint(){ const el=$("#bellbox"); if(!el) return; el.innerHTML=BELL.alerts.map((b,i)=>`<div class="bellcard" role="alert"><span class="bi">🔔</span><div><b>${t("bellNew")}</b><div>${esc(b.name)} · ${esc(secName(b.sectionId))} · ${esc(b.stationName||b.stationId)}</div><small>${esc(dateLabel(b.date,true))} · ${hLabel(b.startHour)}–${hLabel(b.startHour+b.hours)} · ${fmtN(b.price)} ₺ · ${esc(b.phone)}</small></div><button class="link" data-act="bell-x" data-i="${i}" aria-label="close">×</button></div>`).join(""); }
+function bellNew(list){ if(!BELL.seen){ BELL.seen=new Set(list.map(b=>b.id)); return; } const fresh=list.filter(b=>!BELL.seen.has(b.id)); list.forEach(b=>BELL.seen.add(b.id)); const act=fresh.filter(b=>b.status==="active"); if(!act.length) return; BELL.alerts=act.concat(BELL.alerts).slice(0,5); bellPaint(); if(BELL.on) ring(); }
+document.addEventListener("pointerdown",()=>{ if(S.view==="admin") bellCtx(); },{passive:true});
+
 /* subscriptions: slots window depends on view */
-const SUB={slotsKey:null,slots:null,myKey:null,my:null,dayKey:null,day:null};
+const SUB={slotsKey:null,slots:null,myKey:null,my:null,dayKey:null,day:null,newOn:false,nw:null};
 function resubscribe(){
   if(!backend) return;
   let from,to;
@@ -718,6 +735,7 @@ function resubscribe(){
   if(mk!==SUB.myKey){ SUB.my&&SUB.my(); SUB.my=null; SUB.myKey=mk; S.my=[]; if(mk) SUB.my=backend.watchMyBookings(mk,list=>{ S.my=list; if(S.view==="my") softPaint(); }); }
   const dk=S.view==="admin"&&ownerOK()?S.adm.date:null;
   if(dk!==SUB.dayKey){ SUB.day&&SUB.day(); SUB.day=null; SUB.dayKey=dk; S.dayBookings=[]; if(dk) SUB.day=backend.watchBookingsByDate(dk,list=>{ S.dayBookings=list; softPaint(); }); }
+  const bk=!!dk; if(bk!==SUB.newOn){ SUB.newOn=bk; SUB.nw&&SUB.nw(); SUB.nw=null; BELL.seen=null; BELL.alerts=[]; bellPaint(); if(bk) SUB.nw=backend.watchNewBookings(Date.now()-3*3600e3,bellNew); }
 }
 let paintQ=false;
 function softPaint(){ if(paintQ) return; paintQ=true; requestAnimationFrame(()=>{ paintQ=false;
@@ -758,6 +776,8 @@ document.addEventListener("click",async e=>{
     try{ await backend.cancelBooking(b); const m={k:"ok",t:t("cancelOk")}; if(a==="cancel-yes") S.toast=m; else S.adm.msg=m; }catch(x){ const m={k:"err",t:t("err")}; if(a==="cancel-yes") S.toast=m; else S.adm.msg=m; }
     S.confirmId=null; render();
   }
+  else if(a==="bell-x"){ BELL.alerts.splice(Number(d.i),1); bellPaint(); }
+  else if(a==="bell-toggle"){ BELL.on=!BELL.on; try{ localStorage.setItem("bro_bell",BELL.on?"1":"0"); }catch(x){} if(BELL.on) ring(); render(); }
   else if(a==="close-detail"){ S.adm.sel=null; render(); }
   else if(a==="sheet-close"){ S.sheet=null; render(); }
   else if(a==="st-add"){ const sec=S.draft.sections[Number(d.i)]; const pre=sec.stations[0]?sec.stations[0].id.split("-")[0]:sec.id; let n=sec.stations.length+1; while(sec.stations.some(s=>s.id===`${pre}-${n}`)) n++;
